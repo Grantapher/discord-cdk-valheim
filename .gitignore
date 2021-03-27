@@ -1,0 +1,21 @@
+*.js
+!jest.config.js
+*.d.ts
+node_modules
+build
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# Parcel default cache directory
+.parcel-cache
+
+# start user entries
+.idea
+
+# I'm not sure whether or not this ought to be ignored
+cdk.context.json
+
+# output file of inner package
+dist
