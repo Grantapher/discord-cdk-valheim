@@ -1,10 +1,13 @@
 import * as cw from "@aws-cdk/aws-cloudwatch";
+import * as cwa from "@aws-cdk/aws-cloudwatch-actions";
 import * as ec2 from "@aws-cdk/aws-ec2";
 import * as events from "@aws-cdk/aws-events";
 import * as targets from "@aws-cdk/aws-events-targets";
 import * as iam from "@aws-cdk/aws-iam";
 import * as lambda from "@aws-cdk/aws-lambda";
+import * as es from "@aws-cdk/aws-lambda-event-sources";
 import * as logs from "@aws-cdk/aws-logs";
+import * as sns from "@aws-cdk/aws-sns";
 import * as cdk from "@aws-cdk/core";
 import { ValheimWorld } from "cdk-valheim";
 
@@ -44,7 +47,7 @@ export class ValheimWorldStack extends cdk.Stack {
     // todo maybe consider only allowing the below function vpc to query?
     this.world.service.connections.allowFromAnyIpv4(ec2.Port.tcp(80))
 
-    const lambdaFunction = new lambda.Function(this, 'MetricLoggerFunction', {
+    const metricLambdaFunction = new lambda.Function(this, 'MetricLoggerFunction', {
       code: new lambda.AssetCode('src/dist'),
       handler: 'cw-logging-lambda.loggingLambdaHandler',
       runtime: lambda.Runtime.NODEJS_12_X,
@@ -56,12 +59,12 @@ export class ValheimWorldStack extends cdk.Stack {
     })
 
     // todo be more specific
-    lambdaFunction.role!.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonECS_FullAccess'))
-    lambdaFunction.role!.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchFullAccess'))
+    metricLambdaFunction.role!.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonECS_FullAccess'))
+    metricLambdaFunction.role!.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchFullAccess'))
 
     new events.Rule(this, 'ScheduledMetricLoggerRule', {
-      schedule: events.Schedule.rate(cdk.Duration.minutes(1)),
-      targets: [new targets.LambdaFunction(lambdaFunction)],
+      schedule: events.Schedule.cron({}), // defaults to minutely
+      targets: [new targets.LambdaFunction(metricLambdaFunction)],
     })
 
     // 0 players for 1 hour
@@ -95,13 +98,31 @@ export class ValheimWorldStack extends cdk.Stack {
     })
 
     // both of the above
-    new cw.CompositeAlarm(this, 'TurnOffServerAlarm', {
+    const shutoffAlarm = new cw.CompositeAlarm(this, 'TurnOffServerAlarm', {
       alarmRule: cw.AlarmRule.allOf(
         cw.AlarmRule.fromAlarm(lowPlayerCountAlarm, cw.AlarmState.ALARM),
         cw.AlarmRule.fromAlarm(serverOnlineAlarm, cw.AlarmState.ALARM),
       ),
     })
 
-    //todo add action to stop server on alarm
+    const shutoffTopic = new sns.Topic(this, 'ShutoffTopic')
+
+    const shutoffFunction = new lambda.Function(this, 'ShutdownFunction', {
+      code: new lambda.AssetCode('src/dist'),
+      handler: 'stop-server-lambda.stopServerLambdaHandler',
+      runtime: lambda.Runtime.NODEJS_12_X,
+      environment: {
+        SERVER_CLUSTER_ARN: this.world.service.cluster.clusterArn,
+        SERVER_SERVICE_NAME: this.world.service.serviceName,
+      },
+      logRetention: logs.RetentionDays.ONE_WEEK,
+    })
+
+    // todo be more specific
+    shutoffFunction.role!.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonECS_FullAccess'))
+
+    // connect the alarm -> SNS -> lambda
+    shutoffAlarm.addAlarmAction(new cwa.SnsAction(shutoffTopic))
+    shutoffFunction.addEventSource(new es.SnsEventSource(shutoffTopic))
   }
 }
