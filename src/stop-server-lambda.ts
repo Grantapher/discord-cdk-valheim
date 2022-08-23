@@ -1,34 +1,36 @@
-import * as ecs from '@aws-sdk/client-ecs';
+import * as ecs from "@aws-sdk/client-ecs";
 import { SNSEvent } from "aws-lambda";
 
-export const stopServerLambdaHandler = async (event: SNSEvent): Promise<any> => {
-  console.log(`Event: ${JSON.stringify(event)}`)
+export const stopServerLambdaHandler = async (event: SNSEvent): Promise<unknown> => {
+  console.log(`Event: ${JSON.stringify(event)}`);
 
-  const clusterArn = process.env.SERVER_CLUSTER_ARN
+  const clusterArn = process.env.SERVER_CLUSTER_ARN;
   if (!clusterArn) {
-    console.error('No clusterArn configured!')
+    console.error("No clusterArn configured!");
   } else {
-    console.log(`Cluster ARN: ${clusterArn}`)
+    console.log(`Cluster ARN: ${clusterArn}`);
   }
 
-  const serviceName = process.env.SERVER_SERVICE_NAME
+  const serviceName = process.env.SERVER_SERVICE_NAME;
   if (!serviceName) {
-    console.error('No serviceName configured!')
+    console.error("No serviceName configured!");
   } else {
-    console.log(`Service Name: ${serviceName}`)
+    console.log(`Service Name: ${serviceName}`);
   }
 
   if (!clusterArn || !serviceName) {
-    return
+    return;
   }
 
-  const client = new ecs.ECS({})
-  return client.updateService({
-    cluster: clusterArn,
-    service: serviceName,
-    desiredCount: 0,
-  }).catch(e => {
-    console.error(e)
-    return false
-  })
-}
+  const client = new ecs.ECS({});
+  return client
+    .updateService({
+      cluster: clusterArn,
+      service: serviceName,
+      desiredCount: 0,
+    })
+    .catch((e) => {
+      console.error(e);
+      return false;
+    });
+};
