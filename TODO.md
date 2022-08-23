@@ -7,5 +7,6 @@
 - [ ] Add webhook to discord so the bot can announce server state changes.
   - When auto shutoff is initiated.
   - When the server transitions from its boot sequence to online.
+  - Check out [event hooks in the container](https://github.com/lloesche/valheim-server-docker#notify-on-discord) for this.
 
 Note that, additionally, there are many TODOs in the code itself.

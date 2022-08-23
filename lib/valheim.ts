@@ -2,6 +2,7 @@
 import * as cdk from "@aws-cdk/core";
 import { DiscordInteractionsStack } from "./interactions-stack";
 import { ValheimWorldStack } from "./valheim-world-stack";
+import VALHEIM_PLUS_ENV from "./valheim-plus-config";
 
 const app = new cdk.App();
 
@@ -40,6 +41,17 @@ const goblinoValheimServerStack = new ValheimWorldStack(app, "GoblinoWorld", {
   },
 });
 
+const endgardServerStack = new ValheimWorldStack(app, "EndgardWorld", {
+  env,
+  passwordSecretId: "valheimServerPass",
+  adminlistSecretId: "adminlistValheim",
+  environment: {
+    SERVER_NAME: "Endgard",
+    WORLD_NAME: "Endgard",
+    ...VALHEIM_PLUS_ENV,
+  },
+});
+
 const testEmptyServerStack = new ValheimWorldStack(app, "TestEmptyWorld", {
   env,
   passwordSecretId: "valheimServerPass",
@@ -57,6 +69,7 @@ new DiscordInteractionsStack(app, "DiscordInteractionsStack", {
     hellheim: hellheimValheimServerStack.world,
     grantapher: grantapherValheimServerStack.world,
     goblino: goblinoValheimServerStack.world,
+    endgard: endgardServerStack.world,
     test: testEmptyServerStack.world,
   },
 });
