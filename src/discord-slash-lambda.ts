@@ -1,7 +1,15 @@
 import * as ec2 from "@aws-sdk/client-ec2";
 import * as ecs from "@aws-sdk/client-ecs";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { InteractionResponseFlags, InteractionResponseType, InteractionType, verifyKey } from "discord-interactions";
+import { InteractionType, verifyKey } from "discord-interactions";
+import {
+  APIEmbed,
+  APIEmbedField,
+  APIInteractionResponse,
+  EmbedBuilder,
+  InteractionResponseType,
+  MessageFlags,
+} from "discord.js";
 import fetch from "node-fetch";
 
 // injected via lambda env
@@ -38,7 +46,7 @@ export const discordSlashCommandLambdaHandler = async (event: APIGatewayProxyEve
   // check for ping
   if (body.type === InteractionType.PING) {
     console.log("Received ping, returning pong");
-    return response(200, { type: InteractionResponseType.PONG });
+    return successResponse({ type: InteractionResponseType.Pong });
   }
 
   // start actual handling
@@ -50,27 +58,35 @@ export const discordSlashCommandLambdaHandler = async (event: APIGatewayProxyEve
   }
 
   const serverConfigs = JSON.parse(serverConfigString ?? "[]") as ServerConfig[];
-
   console.log(`Server Config: ${JSON.stringify(serverConfigs)}`);
 
   const option = body.data.options[0];
-  switch (option.name) {
-    case "list":
-      return list(serverConfigs);
-    case "start":
-      return await start(serverConfigs, option.options[0].value);
-    case "stop":
-      return await stop(serverConfigs, option.options[0].value);
-    case "status":
-      return await status(serverConfigs, option.options[0].value);
-    default:
-      console.error(`Found unexpected command: "${option.name}"`);
-      return contentResponse("Unexpected command.");
+  try {
+    console.log(`${option.name}-ing`);
+    switch (option.name) {
+      case "list":
+        return list(serverConfigs);
+      case "start":
+        return await start(serverConfigs, option.options[0].value);
+      case "stop":
+        return await stop(serverConfigs, option.options[0].value);
+      case "status":
+        return await status(serverConfigs, option.options[0].value);
+      default:
+        console.error(`Found unexpected command: "${option.name}"`);
+        return contentResponse("Unexpected command.", option.options[0].value);
+    }
+  } catch (e) {
+    console.log(e);
+    return response(503, `${e}`);
   }
 };
 
 const list = async (configs: ServerConfig[]) => {
-  return contentResponse(`Configured servers:\n${configs.map((config) => `  - \`${config.name}\``).join("\n")}`);
+  return contentResponse(
+    `Configured servers:\n${configs.map((config) => `  - \`${config.name}\``).join("\n")}`,
+    "All Servers"
+  );
 };
 
 const start = async (configs: ServerConfig[], name: string) => {
@@ -94,10 +110,10 @@ const start = async (configs: ServerConfig[], name: string) => {
 
   const success = await updateServicePromise;
   if (!success) {
-    return contentResponse(`Couldn't set status of \`${config.name}\`.`);
+    return contentResponse(`Couldn't set status.`, config.name);
   }
 
-  return contentResponse(`Set status of \`${config.name}\` to **on**.`);
+  return contentResponse(`Set status to **on**.`, config.name);
 };
 
 const stop = async (configs: ServerConfig[], name: string) => {
@@ -121,10 +137,10 @@ const stop = async (configs: ServerConfig[], name: string) => {
 
   const success = await updateServicePromise;
   if (!success) {
-    return contentResponse(`Couldn't set status of \`${config.name}\`.`);
+    return contentResponse("Couldn't set status.", config.name);
   }
 
-  return contentResponse(`Set status of \`${config.name}\` to **off**.`);
+  return contentResponse("Set status to **off**.", config.name);
 };
 
 const status = async (configs: ServerConfig[], name: string) => {
@@ -150,22 +166,35 @@ const status = async (configs: ServerConfig[], name: string) => {
   const service = describeServicesResponse?.services?.find(any);
 
   if (!service) {
-    return contentResponse(`Couldn't find the configured service. Try again in a bit.`);
+    return contentResponse(`Couldn't find the configured service. Try again in a bit.`, name);
   }
 
-  const serverContent = `Server: \`${name}\`\n`;
-  let statusContent = `Status: **${getStatus(service, false)}**\n`;
   let debugContent = "";
   if (debug) {
     debugContent =
-      `\nDebug info below\n` +
+      //`\nDebug info below\n` +
       `Desired: ${service.desiredCount ? "Yes" : "No"}\n` +
       `Running: ${service.runningCount ? "Yes" : "No"}\n` +
       `Pending: ${service.pendingCount ? "Yes" : "No"}\n`;
   }
 
   if ((service.runningCount ?? 0) < 1) {
-    return contentResponse(serverContent + statusContent + debugContent);
+    return successResponse({
+      type: InteractionResponseType.ChannelMessageWithSource,
+      data: {
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0xff9900)
+            .setTitle(`Server: \`${name}\``)
+            .setFields(
+              [
+                { name: "Status", value: getStatus(service, false) },
+                debug && { name: "Debug", value: debugContent },
+              ].filter((x): x is APIEmbedField => !!x)
+            ).data,
+        ],
+      },
+    });
   }
 
   const taskDefPromise = client.describeTaskDefinition({ taskDefinition: service.taskDefinition }).catch((e) => {
@@ -207,26 +236,11 @@ const status = async (configs: ServerConfig[], name: string) => {
   const pass = valheimEnv?.find((pair) => pair.name === "SERVER_PASS")?.value;
   const port = valheimEnv?.find((pair) => pair.name === "SERVER_PORT")?.value ?? "2456";
 
-  let passContent = "";
-  if (pass) {
-    passContent = `Password: \`${pass}\`\n`;
-  }
-
   const publicIp = niDescription?.NetworkInterfaces?.find(any)?.Association?.PublicIp;
 
-  let ipContent = "";
-  if (publicIp) {
-    ipContent = `IP Address: \`${publicIp}\`\n`;
-  }
-
-  let joinLinkContent = "";
-  if (pass && publicIp) {
-    joinLinkContent =
-      `**One-Click Join** (Game must not be already open): ` +
-      `steam://run/892970//-console%20%2Bconnect%20${publicIp}%3A${port}%20%2Bpassword%20${pass}\n`;
-  }
-
-  const status = await fetch(`http://${publicIp}/status.json`)
+  // todo make a type result for the status.json result
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const status: any | undefined = await fetch(`http://${publicIp}/status.json`)
     .then((res) => res.json())
     .catch((e) => {
       console.error(e);
@@ -235,20 +249,62 @@ const status = async (configs: ServerConfig[], name: string) => {
 
   const serverUp = (status?.error ?? null) === null;
 
-  statusContent = `Status: **${getStatus(service, serverUp)}**\n`;
-
-  let countContent = "";
-  if (serverUp) {
-    countContent = `Player Count: ${status.player_count}\n`;
-  }
+  // todo add player names? status.json doesn't seem to have them correctly
 
   if (debug) {
     debugContent += `serverUp: ${serverUp ? "Yes" : "No"}\n`;
   }
 
-  return contentResponse(
-    serverContent + statusContent + countContent + joinLinkContent + ipContent + passContent + debugContent
-  );
+  return successResponse({
+    type: InteractionResponseType.ChannelMessageWithSource,
+    data: {
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0xff9900)
+          .setTitle(`Server: \`${name}\``)
+          .setFields(
+            [
+              { name: "Status", value: getStatus(service, serverUp) },
+              typeof status.player_count == "number" && {
+                name: "Player Count",
+                value: `${status.player_count}`,
+                inline: true,
+              },
+              publicIp && { name: "IP Address", value: `\`${publicIp}\``, inline: true },
+              pass && { name: "Password", value: `\`${pass}\``, inline: true },
+              debug && { name: "Debug", value: debugContent },
+            ].filter((x): x is APIEmbedField => !!x)
+          )
+          .toJSON(),
+        publicIp &&
+          pass &&
+          new EmbedBuilder()
+            .setColor(0xff9900)
+            .setTitle("One-Click Join")
+            .setDescription(
+              `Game must not be already open.\nsteam://run/892970//-console%20%2Bconnect%20${publicIp}%3A${port}%20%2Bpassword%20${pass}\n`
+            )
+            .toJSON(),
+      ].filter((x): x is APIEmbed => !!x),
+      // todo can't put in steam links without it being fully visible
+      // components: [
+      //   new ActionRowBuilder<ButtonBuilder>()
+      //     .addComponents(
+      //       new ButtonBuilder()
+      //         .setStyle(ButtonStyle.Link)
+      //         .setLabel("Play Game")
+      //         .setURL("https://www.google.com")
+      //         .setURL(`steam://run/892970//-console%20%2Bconnect%20${publicIp}%3A${port}%20%2Bpassword%20${pass}`)
+      //         .setEmoji({
+      //           id: "785514888990031872",
+      //           name: "skol_splash",
+      //           animated: true,
+      //         })
+      //     )
+      //     .toJSON(),
+      // ],
+    },
+  });
 };
 
 const getStatus = (service: ecs.Service, online: boolean) => {
@@ -277,23 +333,27 @@ const findServerConfig: (configs: ServerConfig[], name: string) => ServerConfig 
 
 const noSuchServerResponse = (name: string) =>
   contentResponse(
-    `Could not find server config \`${name}\`.\n` + "Try running `/vh list` to see the available servers."
+    `Could not find server config \`${name}\`.\n` + "Try running `/vh list` to see the available servers.",
+    name
   );
 
 const getHeader = (event: APIGatewayProxyEvent, key: string) =>
   Object.entries(event.headers).find(([entryKey]) => entryKey.toLowerCase() === key.toLowerCase())?.[1];
 
-const response: (statusCode: number, body: unknown) => APIGatewayProxyResult = (statusCode: number, body: unknown) => ({
-  statusCode,
-  body: JSON.stringify(body),
-});
+const response: (statusCode: number, body: string) => APIGatewayProxyResult = (statusCode: number, body: string) => {
+  console.log(body);
+  return { statusCode, body };
+};
 
-const contentResponse = (content: string, ephemeral?: boolean) =>
-  response(200, {
-    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+const successResponse: (resp: APIInteractionResponse) => APIGatewayProxyResult = (body: APIInteractionResponse) =>
+  response(200, JSON.stringify(body));
+
+const contentResponse = (content: string, name: string, ephemeral?: boolean) =>
+  successResponse({
+    type: InteractionResponseType.ChannelMessageWithSource,
     data: {
-      content,
-      flags: ephemeral ? InteractionResponseFlags.EPHEMERAL : undefined,
+      embeds: [new EmbedBuilder().setColor(0xff9900).setTitle(`Server: \`${name}\``).setDescription(content).toJSON()],
+      flags: ephemeral ? MessageFlags.Ephemeral : undefined,
     },
   });
 

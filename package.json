@@ -13,7 +13,8 @@
     "postclean": "cd src && npm run clean",
     "clean": "rm -rf build",
     "watch": "tsc -w",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "create": "node src/dist/discord-js/deploy-commands/run.js"
   },
   "devDependencies": {
     "@aws-cdk/assert": "^1.94.1",

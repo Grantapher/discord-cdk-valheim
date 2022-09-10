@@ -104,7 +104,9 @@ const getMetrics: (clusterArn: string, serviceName: string) => Promise<{ online:
     return emptyMetrics;
   }
 
-  const status = await fetch(`http://${publicIp}/status.json`)
+  // todo make a type result for the status.json result
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const status: any | undefined = await fetch(`http://${publicIp}/status.json`)
     .then((res) => res.json())
     .catch((e) => {
       console.error(e);

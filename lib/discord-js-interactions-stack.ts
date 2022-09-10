@@ -7,16 +7,18 @@ import * as iam from "@aws-cdk/aws-iam";
 import { ValheimWorld } from "cdk-valheim";
 import { Duration } from "@aws-cdk/core";
 
-export interface DiscordInteractionsStackProps extends cdk.StackProps {
+export interface DiscordJsInteractionsStackProps extends cdk.StackProps {
   readonly servers: { [name: string]: ValheimWorld };
   readonly clientIdSecretId: string;
+  readonly botTokenId: string;
 }
 
-export class DiscordInteractionsStack extends cdk.Stack {
-  constructor(scope: cdk.App, id: string, props: DiscordInteractionsStackProps) {
+export class DiscordJsInteractionsStack extends cdk.Stack {
+  constructor(scope: cdk.App, id: string, props: DiscordJsInteractionsStackProps) {
     super(scope, id, props);
 
     const clientPublicKeySecret = sm.Secret.fromSecretNameV2(this, "ClientPubKey", props.clientIdSecretId);
+    // const botToken = sm.Secret.fromSecretNameV2(this, "BotToken", props.botTokenId);
 
     const serverConfigs = Object.entries(props.servers).map(([name, world]) => ({
       name,
@@ -26,11 +28,12 @@ export class DiscordInteractionsStack extends cdk.Stack {
 
     const lambdaFunction = new lambda.Function(this, "Function", {
       code: new lambda.AssetCode("src/dist"),
-      handler: "discord-slash-lambda.discordSlashCommandLambdaHandler",
+      handler: "discord-js.discordInteractionsHandler",
       runtime: lambda.Runtime.NODEJS_16_X,
       timeout: Duration.seconds(10),
       environment: {
         CLIENT_PUBLIC_KEY: clientPublicKeySecret.secretValueFromJson("CLIENT_PUBLIC_KEY").toString(),
+        // BOT_TOKEN: botToken.secretValueFromJson("TOKEN").toString(),
         SERVER_CONFIG: JSON.stringify(serverConfigs),
       },
       logRetention: logs.RetentionDays.ONE_WEEK,

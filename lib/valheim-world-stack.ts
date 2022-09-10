@@ -9,6 +9,7 @@ import * as es from "@aws-cdk/aws-lambda-event-sources";
 import * as logs from "@aws-cdk/aws-logs";
 import * as sns from "@aws-cdk/aws-sns";
 import * as cdk from "@aws-cdk/core";
+import { Duration } from "@aws-cdk/core";
 import { ValheimWorld } from "cdk-valheim";
 
 export interface ValheimWorldStackProps extends cdk.StackProps {
@@ -28,7 +29,7 @@ export class ValheimWorldStack extends cdk.Stack {
       memoryLimitMiB: 4096,
       desiredCount: 0,
       environment: {
-        SERVER_PUBLIC: "1",
+        SERVER_PUBLIC: "true",
         UPDATE_CRON: "*/15 * * * *",
         BACKUPS_CRON: "10/15 * * * *",
         RESTART_CRON: "0 6 * * *",
@@ -55,7 +56,8 @@ export class ValheimWorldStack extends cdk.Stack {
     const metricLambdaFunction = new lambda.Function(this, "MetricLoggerFunction", {
       code: new lambda.AssetCode("src/dist"),
       handler: "cw-logging-lambda.loggingLambdaHandler",
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
+      timeout: Duration.seconds(10),
       environment: {
         SERVER_CLUSTER_ARN: this.world.service.cluster.clusterArn,
         SERVER_SERVICE_NAME: this.world.service.serviceName,
@@ -119,7 +121,8 @@ export class ValheimWorldStack extends cdk.Stack {
     const shutoffFunction = new lambda.Function(this, "ShutdownFunction", {
       code: new lambda.AssetCode("src/dist"),
       handler: "stop-server-lambda.stopServerLambdaHandler",
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
+      timeout: Duration.seconds(10),
       environment: {
         SERVER_CLUSTER_ARN: this.world.service.cluster.clusterArn,
         SERVER_SERVICE_NAME: this.world.service.serviceName,
