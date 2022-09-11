@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import * as cdk from "@aws-cdk/core";
+import { DiscordJsInteractionsStack } from "./discord-js-interactions-stack";
 import { DiscordInteractionsStack } from "./interactions-stack";
-import { ValheimWorldStack } from "./valheim-world-stack";
+import { ValheimSecretStack } from "./secret-stack";
 import VALHEIM_PLUS_ENV from "./valheim-plus-config";
 import VALHEIM_PLUS_EZPZ_ENV from "./valheim-plus-config-ezpz";
-import { DiscordJsInteractionsStack } from "./discord-js-interactions-stack";
+import { ValheimWorldStack } from "./valheim-world-stack";
 
 const app = new cdk.App();
 
@@ -21,13 +22,14 @@ enum Color {
   RED = 0xff0000,
 }
 
-// todo don't commit. Turn into secrets.
-const PROD_WEBHOOK =
-  "https://discord.com/api/webhooks/1013002021508485161/aYg5U9F9PcqRy-3sFeBCyjqwEvpanOQpDnWdLKWW-NBxDXL9KQBJM9AM-n9gBu4Ye9k9";
-const DEBUG_WEBHOOK =
-  "https://discord.com/api/webhooks/1011876607591460884/tRW0-UNpY59IspWEFowE8ZAFKLwxk8fxSCTBtJHyu13bSfCb3LXaVaF5wgQFQTlwMbP8";
-const DEBUG_CHANNEL_FAKE_PROD_WEBHOOK =
-  "https://discord.com/api/webhooks/1013008454320926800/lf26gIJY_degJSq_QtNPuUPBnJXtNXMqO_ZGaJNKgtaBMEGnsztFwEetjdvaz9jM6HHL";
+const secretStack = new ValheimSecretStack(app, "ValheimSecretStack", {
+  valheimWebhookSecretId: "ValheimWebhooks",
+});
+const webhookSecrets = secretStack.valheimWebhookSecret;
+
+const PROD_WEBHOOK = webhookSecrets.secretValueFromJson("prod").toString();
+const DEBUG_WEBHOOK = webhookSecrets.secretValueFromJson("debug").toString();
+const DEBUG_CHANNEL_FAKE_PROD_WEBHOOK = webhookSecrets.secretValueFromJson("dev").toString();
 
 const contentBody = (name: string, content: string, color: Color) =>
   JSON.stringify(

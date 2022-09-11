@@ -1,6 +1,7 @@
 import { REST } from "@discordjs/rest";
 import { Routes, SlashCommandBuilder, SlashCommandStringOption, SlashCommandSubcommandBuilder } from "discord.js";
 import config from "../../config";
+import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 
 // const beepCommand = new SlashCommandBuilder().setName("beep").setDescription("Replies with boop!");
 
@@ -37,7 +38,19 @@ const valheimCommand = new SlashCommandBuilder()
   .setDescription("Interact with the Valheim servers.");
 
 export const deployCommands = async () => {
-  const { applicationId, guildId, token } = config;
+  const { applicationId, guildId } = config;
+
+  const secretsClient = new SecretsManager({});
+  const secret = await secretsClient.getSecretValue({ SecretId: "ValheimBotToken" });
+  const secretStr = secret.SecretString ?? "";
+  if (secretStr === "") {
+    console.error("Secret doesn't exist.");
+    return;
+  }
+
+  const secretJson = JSON.parse(secretStr);
+  const token = secretJson.TOKEN;
+
   const rest = new REST({ version: "10" }).setToken(token);
 
   const commands = [vhCommand, valheimCommand].map((command) => command.toJSON());
