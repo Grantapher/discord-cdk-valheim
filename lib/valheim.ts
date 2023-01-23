@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import * as cdk from "@aws-cdk/core";
 import { DiscordJsInteractionsStack } from "./discord-js-interactions-stack";
-import { DiscordInteractionsStack } from "./interactions-stack";
 import { ValheimSecretStack } from "./secret-stack";
 import VALHEIM_PLUS_ENV from "./valheim-plus-config";
 import VALHEIM_PLUS_EZPZ_ENV from "./valheim-plus-config-ezpz";
+import VALHEIM_PLUS_OMEGA_QOL_ENV from "./valheim-plus-config-omega-qol";
 import { ValheimWorldStack } from "./valheim-world-stack";
 
 const app = new cdk.App();
@@ -133,20 +133,19 @@ const testEmptyServerStack = new ValheimWorldStack(app, "TestEmptyWorld", {
     NOFIFY_WEBHOOK: DEBUG_CHANNEL_FAKE_PROD_WEBHOOK,
     SERVER_NAME: "GrantTest",
     WORLD_NAME: "GrantTest",
-    ...VALHEIM_PLUS_ENV,
+    ...VALHEIM_PLUS_OMEGA_QOL_ENV,
   },
 });
 
-new DiscordInteractionsStack(app, "DiscordInteractionsStack", {
+const niflheimServerStack = new ValheimWorldStack(app, "NiflheimWorld", {
   env,
-  clientIdSecretId: "discordValheimBotClientPublicKey",
-  servers: {
-    hellheim: hellheimValheimServerStack.world,
-    grantapher: grantapherValheimServerStack.world,
-    goblino: goblinoValheimServerStack.world,
-    endgard: endgardServerStack.world,
-    arvend: arvendServerStack.world,
-    test: testEmptyServerStack.world,
+  passwordSecretId: "valheimServerPass",
+  adminlistSecretId: "adminlistValheim",
+  environment: {
+    ...commonEnv("niflheim"),
+    SERVER_NAME: "NiflheimWorld",
+    WORLD_NAME: "NiflheimWorld",
+    ...VALHEIM_PLUS_OMEGA_QOL_ENV,
   },
 });
 
@@ -155,6 +154,7 @@ new DiscordJsInteractionsStack(app, "DiscordJsInteractionsStack", {
   clientIdSecretId: "discordValheimBotClientPublicKey",
   botTokenId: "ValheimBotToken",
   servers: {
+    niflheim: niflheimServerStack.world,
     hellheim: hellheimValheimServerStack.world,
     grantapher: grantapherValheimServerStack.world,
     goblino: goblinoValheimServerStack.world,
