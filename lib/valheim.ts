@@ -5,7 +5,9 @@ import { ValheimSecretStack } from "./secret-stack";
 import VALHEIM_PLUS_ENV from "./valheim-plus-config";
 import VALHEIM_PLUS_EZPZ_ENV from "./valheim-plus-config-ezpz";
 import VALHEIM_PLUS_OMEGA_QOL_ENV from "./valheim-plus-config-omega-qol";
+import { ValheimS3Stack } from "./valheim-s3-stack";
 import { ValheimWorldStack } from "./valheim-world-stack";
+import { ValheimWorld } from "cdk-valheim";
 
 const app = new cdk.App();
 
@@ -50,13 +52,17 @@ const callNotifyContentWebhook = (name: string, content: string, color: Color = 
 const callDebugContentWebhook = (name: string, content: string, color: Color = Color.NONE) =>
   `curl -sfSL -X POST -H 'Content-Type: application/json' -d ${contentBody(name, content, color)} "$DEBUG_WEBHOOK"`;
 
+const installAwsCli = "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install awscli";
+const downloadCustomVPlus =
+  "aws s3 cp s3://valheim-cdk-bucket/mods/dll/ValheimPlus.dll /opt/valheim/plus/BepInEx/plugins/ValheimPlus.dll";
+
 const commonEnv = (name: string) => ({
   VALHEIM_PLUS: "true",
   NOFIFY_WEBHOOK: PROD_WEBHOOK,
   DEBUG_WEBHOOK: DEBUG_WEBHOOK,
   PRE_SUPERVISOR_HOOK: callDebugContentWebhook(name, "Booting up!", Color.YELLOW),
   PRE_BOOTSTRAP_HOOK: callDebugContentWebhook(name, "Bootstrapping..."),
-  POST_BOOTSTRAP_HOOK: callDebugContentWebhook(name, "Bootstrapped!"),
+  POST_BOOTSTRAP_HOOK: `${installAwsCli} && ${callDebugContentWebhook(name, "Bootstrapped!")} `,
   PRE_UPDATE_CHECK_HOOK: callDebugContentWebhook(name, "Updating..."),
   POST_UPDATE_CHECK_HOOK: callDebugContentWebhook(name, "Updated!"),
   PRE_START_HOOK: callDebugContentWebhook(name, "Starting Valheim..."),
@@ -65,6 +71,11 @@ const commonEnv = (name: string) => ({
   POST_START_HOOK: callDebugContentWebhook(name, "Started Valheim!"),
   PRE_SERVER_SHUTDOWN_HOOK: callNotifyContentWebhook(name, "Shutting down!", Color.RED),
   POST_SERVER_SHUTDOWN_HOOK: callDebugContentWebhook(name, "Stopped Valheim!"),
+});
+
+const s3Stack = new ValheimS3Stack(app, "ValheimS3Stack", {
+  env,
+  bucketName: "valheim-cdk-bucket",
 });
 
 const hellheimValheimServerStack = new ValheimWorldStack(app, "HellheimWorld", {
@@ -134,6 +145,7 @@ const testEmptyServerStack = new ValheimWorldStack(app, "TestEmptyWorld", {
     SERVER_NAME: "GrantTest",
     WORLD_NAME: "GrantTest",
     ...VALHEIM_PLUS_OMEGA_QOL_ENV,
+    POST_UPDATE_CHECK_HOOK: `${callDebugContentWebhook("test", "Updated!")} && ${downloadCustomVPlus}`,
   },
 });
 
@@ -146,20 +158,27 @@ const niflheimServerStack = new ValheimWorldStack(app, "NiflheimWorld", {
     SERVER_NAME: "NiflheimWorld",
     WORLD_NAME: "NiflheimWorld",
     ...VALHEIM_PLUS_OMEGA_QOL_ENV,
+    POST_UPDATE_CHECK_HOOK: `${callDebugContentWebhook("test", "Updated!")} && ${downloadCustomVPlus}`,
   },
 });
+
+const allServers: Record<string, ValheimWorld> = {
+  niflheim: niflheimServerStack.world,
+  hellheim: hellheimValheimServerStack.world,
+  grantapher: grantapherValheimServerStack.world,
+  goblino: goblinoValheimServerStack.world,
+  endgard: endgardServerStack.world,
+  arvend: arvendServerStack.world,
+  test: testEmptyServerStack.world,
+};
 
 new DiscordJsInteractionsStack(app, "DiscordJsInteractionsStack", {
   env,
   clientIdSecretId: "discordValheimBotClientPublicKey",
   botTokenId: "ValheimBotToken",
-  servers: {
-    niflheim: niflheimServerStack.world,
-    hellheim: hellheimValheimServerStack.world,
-    grantapher: grantapherValheimServerStack.world,
-    goblino: goblinoValheimServerStack.world,
-    endgard: endgardServerStack.world,
-    arvend: arvendServerStack.world,
-    test: testEmptyServerStack.world,
-  },
+  servers: allServers,
 });
+
+Object.values(allServers).forEach((valheimWorld) =>
+  s3Stack.bucket.grantRead(valheimWorld.service.taskDefinition.taskRole)
+);

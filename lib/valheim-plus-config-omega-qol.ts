@@ -86,7 +86,7 @@ export default {
   VPCFG_Items_enabled: "true",
   VPCFG_Items_noTeleportPrevention: "true",
   VPCFG_Items_baseItemWeightReduction: "-99", // 1% of original weight
-  VPCFG_Items_itemStackMultiplier: "2000", // 20x stack sizes of items
+  VPCFG_Items_itemStackMultiplier: "1900", // 20x stack sizes of items
   VPCFG_Items_itemsFloatInWater: "true", // everything floats in water
 
   VPCFG_Kiln_enabled: "true",
@@ -97,6 +97,10 @@ export default {
   VPCFG_Kiln_dontProcessFineWood: "true",
   VPCFG_Kiln_dontProcessRoundLog: "true",
   VPCFG_Kiln_autoDeposit: "true",
+
+  VPCFG_LootDrop_enabled: "true",
+  VPCFG_LootDrop_lootDropAmountMultiplier: "900", // 10x drop amounts
+  VPCFG_LootDrop_lootDropChanceMultiplier: "99900", // guarantees all drops
 
   VPCFG_Map_enabled: "true",
   VPCFG_Map_exploreRadius: "2000", // ususally 100
@@ -181,7 +185,7 @@ export default {
 
   VPCFG_Durability_enabled: "true", // 20x all durability
   ...["pickaxes", "axes", "hammer", "cultivator", "hoe", "weapons", "armor", "bows", "shields", "torch"]
-    .map((it) => ({ [`VPCFG_Durability_${it}`]: "2000" }))
+    .map((it) => ({ [`VPCFG_Durability_${it}`]: "1900" }))
     .reduce((prev, curr) => Object.assign(prev, curr)),
 
   VPCFG_Experience_enabled: "true", // 20x all experience
@@ -205,7 +209,7 @@ export default {
     "swim",
     "ride",
   ]
-    .map((it) => ({ [`VPCFG_Experience_${it}`]: "2000" }))
+    .map((it) => ({ [`VPCFG_Experience_${it}`]: "1900" }))
     .reduce((prev, curr) => Object.assign(prev, curr)),
 
   ...[
@@ -219,13 +223,14 @@ export default {
     "tinOre",
     "copperOre",
     "silverOre",
-    "Chitin",
+    "chitin",
+    "feather",
   ]
-    .map((it) => ({ [`VPCFG_Gathering_${it}`]: "1000" }))
+    .map((it) => ({ [`VPCFG_Gathering_${it}`]: "900" }))
     .reduce((prev, curr) => Object.assign(prev, curr)),
 
   VPCFG_Pickable_enabled: "true", // 10x all drop amounts
   ...["edibles", "flowersAndIngredients", "materials", "valuables", "surtlingCores"]
-    .map((it) => ({ [`VPCFG_Pickable_${it}`]: "1000" }))
+    .map((it) => ({ [`VPCFG_Pickable_${it}`]: "900" }))
     .reduce((prev, curr) => Object.assign(prev, curr)),
 };
