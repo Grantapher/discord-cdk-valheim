@@ -99,8 +99,8 @@ export default {
   VPCFG_Kiln_autoDeposit: "true",
 
   VPCFG_LootDrop_enabled: "true",
-  VPCFG_LootDrop_lootDropAmountMultiplier: "900", // 10x drop amounts
-  VPCFG_LootDrop_lootDropChanceMultiplier: "99900", // guarantees all drops
+  VPCFG_LootDrop_lootDropAmountMultiplier: "400", // 5x drop amounts
+  VPCFG_LootDrop_lootDropChanceMultiplier: "999900", // guarantees all drops
 
   VPCFG_Map_enabled: "true",
   VPCFG_Map_exploreRadius: "2000", // ususally 100
@@ -146,8 +146,13 @@ export default {
   VPCFG_Stamina_sneakStaminaDrain: "-90",
   VPCFG_Stamina_runStaminaDrain: "-90",
   VPCFG_Stamina_jumpStaminaDrain: "-50",
-  VPCFG_Stamina_dodgeStaminaUsage: "-50",
+  VPCFG_Stamina_swimStaminaDrain: "-90",
   VPCFG_Stamina_staminaRegen: "50",
+
+  VPCFG_StaminaUsage_enabled: "true", // make tools use way less stamina
+  VPCFG_StaminaUsage_hoe: "-95", // 95% less stamina usage
+  VPCFG_StaminaUsage_cultivator: "-95",
+  VPCFG_StaminaUsage_hammer: "-95",
 
   VPCFG_StructuralIntegrity_enabled: "true",
   VPCFG_StructuralIntegrity_disableWaterDamageToPlayerBoats: "true", // disable water force damage to boats
@@ -188,7 +193,7 @@ export default {
     .map((it) => ({ [`VPCFG_Durability_${it}`]: "1900" }))
     .reduce((prev, curr) => Object.assign(prev, curr)),
 
-  VPCFG_Experience_enabled: "true", // 20x all experience
+  VPCFG_Experience_enabled: "true", // 100x all experience
   ...[
     "swords",
     "knives",
@@ -209,11 +214,11 @@ export default {
     "swim",
     "ride",
   ]
-    .map((it) => ({ [`VPCFG_Experience_${it}`]: "1900" }))
+    .map((it) => ({ [`VPCFG_Experience_${it}`]: "9900" }))
     .reduce((prev, curr) => Object.assign(prev, curr)),
 
   ...[
-    // 10x all drop amounts
+    // 5x all drop amounts
     "wood",
     "stone",
     "fineWood",
@@ -226,11 +231,11 @@ export default {
     "chitin",
     "feather",
   ]
-    .map((it) => ({ [`VPCFG_Gathering_${it}`]: "900" }))
+    .map((it) => ({ [`VPCFG_Gathering_${it}`]: "400" }))
     .reduce((prev, curr) => Object.assign(prev, curr)),
 
-  VPCFG_Pickable_enabled: "true", // 10x all drop amounts
+  VPCFG_Pickable_enabled: "true", // 5x all drop amounts
   ...["edibles", "flowersAndIngredients", "materials", "valuables", "surtlingCores"]
-    .map((it) => ({ [`VPCFG_Pickable_${it}`]: "900" }))
+    .map((it) => ({ [`VPCFG_Pickable_${it}`]: "400" }))
     .reduce((prev, curr) => Object.assign(prev, curr)),
 };

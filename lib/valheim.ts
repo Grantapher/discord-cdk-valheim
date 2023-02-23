@@ -162,6 +162,33 @@ const niflheimServerStack = new ValheimWorldStack(app, "NiflheimWorld", {
   },
 });
 
+const grantServerStack = new ValheimWorldStack(app, "GrantWorld", {
+  env,
+  passwordSecretId: "valheimServerPass",
+  adminlistSecretId: "adminlistValheim",
+  environment: {
+    ...commonEnv("grant"),
+    NOFIFY_WEBHOOK: DEBUG_CHANNEL_FAKE_PROD_WEBHOOK,
+    SERVER_NAME: "GrantWorld",
+    WORLD_NAME: "GrantWorld",
+    ...VALHEIM_PLUS_OMEGA_QOL_ENV,
+    POST_UPDATE_CHECK_HOOK: `${callDebugContentWebhook("test", "Updated!")} && ${downloadCustomVPlus}`,
+  },
+});
+
+const betaServerStack = new ValheimWorldStack(app, "BetaWorld", {
+  env,
+  passwordSecretId: "valheimServerPass",
+  adminlistSecretId: "adminlistValheim",
+  environment: {
+    ...commonEnv("beta"),
+    SERVER_NAME: "BetaWorld",
+    WORLD_NAME: "BetaWorld",
+    ...VALHEIM_PLUS_OMEGA_QOL_ENV,
+    POST_UPDATE_CHECK_HOOK: `${callDebugContentWebhook("test", "Updated!")} && ${downloadCustomVPlus}`,
+  },
+});
+
 const allServers: Record<string, ValheimWorld> = {
   niflheim: niflheimServerStack.world,
   hellheim: hellheimValheimServerStack.world,
@@ -169,6 +196,8 @@ const allServers: Record<string, ValheimWorld> = {
   goblino: goblinoValheimServerStack.world,
   endgard: endgardServerStack.world,
   arvend: arvendServerStack.world,
+  grant: grantServerStack.world,
+  beta: betaServerStack.world,
   test: testEmptyServerStack.world,
 };
 
