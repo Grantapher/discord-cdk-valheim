@@ -27,6 +27,14 @@ export default {
   VPCFG_CraftFromChest_enabled: "true", // craft from chests/carts/ships around your nearest workbench
   VPCFG_CraftFromChest_range: "30",
 
+  VPCFG_EitrRefinery_enabled: "true",
+  VPCFG_EitrRefinery_maximumSap: "200", // usually 20
+  VPCFG_EitrRefinery_maximumSoftTissue: "200", // usually 20
+  VPCFG_EitrRefinery_productionSpeed: "1", // usually 40 seconds
+  VPCFG_EitrRefinery_autoDeposit: "true", // place result in nearby chest
+  VPCFG_EitrRefinery_autoFuel: "true", // retrieve fuel from nearby chests
+  VPCFG_EitrRefinery_autoRange: "3",
+
   VPCFG_Fermenter_enabled: "true",
   VPCFG_Fermenter_showDuration: "true", // show mins/secs to finishing
   VPCFG_Fermenter_fermenterDuration: "60", // usually 2400 seconds
@@ -208,10 +216,12 @@ export default {
     "unarmed",
     "pickaxes",
     "woodCutting",
+    "crossbows",
     "jump",
     "sneak",
     "run",
     "swim",
+    "fishing",
     "ride",
   ]
     .map((it) => ({ [`VPCFG_Experience_${it}`]: "9900" }))
