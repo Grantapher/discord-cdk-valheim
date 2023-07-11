@@ -58,6 +58,10 @@ const downloadCustomVPlus =
 
 const commonEnv = (name: string) => ({
   VALHEIM_PLUS: "true",
+  VALHEIM_PLUS_REPO: "Grantapher/ValheimPlus",
+  // VALHEIM_PLUS_RELEASE: "tags/0.9.9.15-alpha7",
+  // STEAMCMD_ARGS: "-beta public-test -betapassword yesimadebackups",
+  SERVER_ARGS: "-crossplay",
   NOFIFY_WEBHOOK: PROD_WEBHOOK,
   DEBUG_WEBHOOK: DEBUG_WEBHOOK,
   PRE_SUPERVISOR_HOOK: callDebugContentWebhook(name, "Booting up!", Color.YELLOW),
@@ -145,7 +149,7 @@ const testEmptyServerStack = new ValheimWorldStack(app, "TestEmptyWorld", {
     SERVER_NAME: "GrantTest",
     WORLD_NAME: "GrantTest",
     ...VALHEIM_PLUS_OMEGA_QOL_ENV,
-    POST_UPDATE_CHECK_HOOK: `${callDebugContentWebhook("test", "Updated!")} && ${downloadCustomVPlus}`,
+    //POST_UPDATE_CHECK_HOOK: `${callDebugContentWebhook("test", "Updated!")} && ${downloadCustomVPlus}`,
   },
 });
 

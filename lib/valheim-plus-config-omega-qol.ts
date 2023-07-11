@@ -1,6 +1,7 @@
 export default {
   // Valheim plus options as env config...
   VPCFG_Server_enabled: "true", // enable V+, server syncing of configs, and enforcing v+ installations
+  VPCFG_Server_enforceMod: "true",
 
   VPCFG_Bed_enabled: "true", // enable ability to sleep on bed without claiming spawn
 
@@ -133,6 +134,7 @@ export default {
   VPCFG_Player_iHaveArrivedOnSpawn: "false",
   VPCFG_Player_dontUnequipItemsWhenSwimming: "true",
   VPCFG_Player_fallDamageScalePercent: "-80", // less fall damage
+  VPCFG_Player_disableEightSecondTeleport: "true", // teleport quicker
 
   VPCFG_Smelter_enabled: "true",
   VPCFG_Smelter_maximumOre: "100", // usually 10
