@@ -45,9 +45,9 @@ export default {
   VPCFG_EitrRefinery_autoFuel: "true", // retrieve fuel from nearby chests
   VPCFG_EitrRefinery_autoRange: "3",
 
-  VPCFG_EitrUsage_enabled: "true",
-  VPCFG_EitrUsage_bloodMagic: "-80",
-  VPCFG_EitrUsage_elementalMagic: "-80",
+  // VPCFG_EitrUsage_enabled: "true",
+  // VPCFG_EitrUsage_bloodMagic: "-80",
+  // VPCFG_EitrUsage_elementalMagic: "-80",
 
   VPCFG_Fermenter_enabled: "true",
   VPCFG_Fermenter_showDuration: "true", // show mins/secs to finishing
@@ -88,8 +88,8 @@ export default {
 
   VPCFG_GridAlignment_enabled: "true", // global grid alignment when building using left alt
 
-  VPCFG_HealthUsage_enabled: "true",
-  VPCFG_HealthUsage_bloodMagic: "-80",
+  // VPCFG_HealthUsage_enabled: "true",
+  // VPCFG_HealthUsage_bloodMagic: "-80",
 
   VPCFG_HotTub_enabled: "true",
   VPCFG_HotTub_infiniteFuel: "true",
@@ -165,8 +165,8 @@ export default {
   VPCFG_SapCollector_autoDepositRange: "5",
   VPCFG_SapCollector_showDuration: "true",
 
-  VPCFG_ShieldGenerator_enabled: "true",
-  VPCFG_ShieldGenerator_infiniteFuel: "true",
+  // VPCFG_ShieldGenerator_enabled: "true",
+  // VPCFG_ShieldGenerator_infiniteFuel: "true",
 
   VPCFG_Smelter_enabled: "true",
   VPCFG_Smelter_maximumOre: "100", // usually 10
@@ -216,9 +216,9 @@ export default {
   VPCFG_Tameable_stunRecoveryTime: "30",
   VPCFG_Tameable_stunInformation: "true",
 
-  VPCFG_Turret_enabled: "true",
-  VPCFG_Turret_ignorePlayers: "true",
-  VPCFG_Turret_projectileAccuracy: "100",
+  // VPCFG_Turret_enabled: "true",
+  // VPCFG_Turret_ignorePlayers: "true",
+  // VPCFG_Turret_projectileAccuracy: "100",
 
   VPCFG_Wagon_enabled: "true",
   VPCFG_Wagon_wagonBaseMass: "1", // wagon is light
@@ -278,10 +278,10 @@ export default {
     "coreWood",
     "elderBark",
     "yggdrasilWood",
-    "blackwood",
+    // "blackwood",
     "stone",
-    "grausten",
-    "blackMarble",
+    // "grausten",
+    // "blackMarble",
     "tinOre",
     "copperOre",
     "copperScrap",
@@ -289,14 +289,14 @@ export default {
     "silverOre",
     "chitin",
     "feather",
-    "flametalOre",
-    "proustitePowder",
+    // "flametalOre",
+    // "proustitePowder",
   ]
     .map((it) => ({ [`VPCFG_Gathering_${it}`]: "400" }))
     .reduce((prev, curr) => Object.assign(prev, curr)),
 
   VPCFG_Pickable_enabled: "true", // 5x all drop amounts
-  ...["edibles", "flowersAndIngredients", "materials", "valuables", "surtlingCores", "blackCores", "questItems"]
+  ...["edibles", "flowersAndIngredients", "materials", "valuables", "surtlingCores", /*"blackCores",*/ "questItems"]
     .map((it) => ({ [`VPCFG_Pickable_${it}`]: "400" }))
     .reduce((prev, curr) => Object.assign(prev, curr)),
 };

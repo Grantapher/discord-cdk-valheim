@@ -1,11 +1,13 @@
-import * as lambda from "@aws-cdk/aws-lambda";
-import * as cdk from "@aws-cdk/core";
-import * as apig from "@aws-cdk/aws-apigateway";
-import * as logs from "@aws-cdk/aws-logs";
-import * as sm from "@aws-cdk/aws-secretsmanager";
-import * as iam from "@aws-cdk/aws-iam";
 import { ValheimWorld } from "cdk-valheim";
-import { Duration } from "@aws-cdk/core";
+import * as cdk from "aws-cdk-lib";
+import {
+  aws_apigateway as apig,
+  aws_iam as iam,
+  aws_lambda as lambda,
+  aws_logs as logs,
+  aws_secretsmanager as sm,
+  Duration,
+} from "aws-cdk-lib";
 
 export interface DiscordInteractionsStackProps extends cdk.StackProps {
   readonly servers: { [name: string]: ValheimWorld };
@@ -27,7 +29,7 @@ export class DiscordInteractionsStack extends cdk.Stack {
     const lambdaFunction = new lambda.Function(this, "Function", {
       code: new lambda.AssetCode("src/dist"),
       handler: "discord-slash-lambda.discordSlashCommandLambdaHandler",
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       timeout: Duration.seconds(10),
       environment: {
         CLIENT_PUBLIC_KEY: clientPublicKeySecret.secretValueFromJson("CLIENT_PUBLIC_KEY").toString(),

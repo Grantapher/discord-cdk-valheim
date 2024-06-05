@@ -1,5 +1,5 @@
-import * as cdk from "@aws-cdk/core";
-import * as s3 from "@aws-cdk/aws-s3";
+import * as cdk from "aws-cdk-lib";
+import { aws_s3 as s3 } from "aws-cdk-lib";
 
 export interface ValheimS3StackProps extends cdk.StackProps {
   readonly bucketName?: string;

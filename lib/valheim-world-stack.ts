@@ -1,16 +1,19 @@
-import * as cw from "@aws-cdk/aws-cloudwatch";
-import * as cwa from "@aws-cdk/aws-cloudwatch-actions";
-import * as ec2 from "@aws-cdk/aws-ec2";
-import * as events from "@aws-cdk/aws-events";
-import * as targets from "@aws-cdk/aws-events-targets";
-import * as iam from "@aws-cdk/aws-iam";
-import * as lambda from "@aws-cdk/aws-lambda";
-import * as es from "@aws-cdk/aws-lambda-event-sources";
-import * as logs from "@aws-cdk/aws-logs";
-import * as sns from "@aws-cdk/aws-sns";
-import * as cdk from "@aws-cdk/core";
-import { Duration } from "@aws-cdk/core";
 import { ValheimWorld } from "cdk-valheim";
+import * as cdk from "aws-cdk-lib";
+import {
+  aws_cloudwatch as cw,
+  aws_cloudwatch_actions as cwa,
+  aws_ec2 as ec2,
+  aws_events as events,
+  aws_events_targets as targets,
+  aws_iam as iam,
+  aws_lambda as lambda,
+  aws_lambda_event_sources as es,
+  aws_logs as logs,
+  aws_sns as sns,
+  Duration,
+} from "aws-cdk-lib";
+import { Construct } from "constructs";
 
 export interface ValheimWorldStackProps extends cdk.StackProps {
   readonly environment: { [key: string]: string };
@@ -21,7 +24,7 @@ export interface ValheimWorldStackProps extends cdk.StackProps {
 export class ValheimWorldStack extends cdk.Stack {
   public readonly world: ValheimWorld;
 
-  constructor(scope: cdk.Construct, id: string, props: ValheimWorldStackProps) {
+  constructor(scope: Construct, id: string, props: ValheimWorldStackProps) {
     super(scope, id, props);
 
     this.world = new ValheimWorld(this, "World", {
@@ -56,7 +59,7 @@ export class ValheimWorldStack extends cdk.Stack {
     const metricLambdaFunction = new lambda.Function(this, "MetricLoggerFunction", {
       code: new lambda.AssetCode("src/dist"),
       handler: "cw-logging-lambda.loggingLambdaHandler",
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       timeout: Duration.seconds(10),
       environment: {
         SERVER_CLUSTER_ARN: this.world.service.cluster.clusterArn,
@@ -121,7 +124,7 @@ export class ValheimWorldStack extends cdk.Stack {
     const shutoffFunction = new lambda.Function(this, "ShutdownFunction", {
       code: new lambda.AssetCode("src/dist"),
       handler: "stop-server-lambda.stopServerLambdaHandler",
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       timeout: Duration.seconds(10),
       environment: {
         SERVER_CLUSTER_ARN: this.world.service.cluster.clusterArn,

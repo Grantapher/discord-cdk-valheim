@@ -1,13 +1,12 @@
 #!/usr/bin/env node
-import * as cdk from "@aws-cdk/core";
 import { DiscordJsInteractionsStack } from "./discord-js-interactions-stack";
 import { ValheimSecretStack } from "./secret-stack";
-import VALHEIM_PLUS_ENV from "./valheim-plus-config";
-import VALHEIM_PLUS_EZPZ_ENV from "./valheim-plus-config-ezpz";
 import VALHEIM_PLUS_OMEGA_QOL_ENV from "./valheim-plus-config-omega-qol";
+import VALHEIM_PLUS_OMEGA_QOL_ENV_PRE_ASH from "./valheim-plus-config-omega-qol-pre-ashlands";
 import { ValheimS3Stack } from "./valheim-s3-stack";
 import { ValheimWorldStack } from "./valheim-world-stack";
 import { ValheimWorld } from "cdk-valheim";
+import * as cdk from "aws-cdk-lib";
 
 const app = new cdk.App();
 
@@ -82,63 +81,6 @@ const s3Stack = new ValheimS3Stack(app, "ValheimS3Stack", {
   bucketName: "valheim-cdk-bucket",
 });
 
-const hellheimValheimServerStack = new ValheimWorldStack(app, "HellheimWorld", {
-  env,
-  passwordSecretId: "valheimServerPass",
-  adminlistSecretId: "adminlistValheim",
-  environment: {
-    ...commonEnv("hellheim"),
-    SERVER_NAME: "Hellheim Dedicated Server",
-    WORLD_NAME: "Hellheim",
-  },
-});
-
-const grantapherValheimServerStack = new ValheimWorldStack(app, "GrantapherWorld", {
-  env,
-  passwordSecretId: "valheimServerPass",
-  adminlistSecretId: "adminlistValheim",
-  environment: {
-    ...commonEnv("grantapher"),
-    SERVER_NAME: "Grantapher's Server",
-    WORLD_NAME: "GrantapherThanes",
-  },
-});
-
-const goblinoValheimServerStack = new ValheimWorldStack(app, "GoblinoWorld", {
-  env,
-  passwordSecretId: "valheimServerPass",
-  adminlistSecretId: "adminlistValheim",
-  environment: {
-    ...commonEnv("goblino"),
-    SERVER_NAME: "No Goblin Smorc",
-    WORLD_NAME: "NoGoblin",
-  },
-});
-
-const endgardServerStack = new ValheimWorldStack(app, "EndgardWorld", {
-  env,
-  passwordSecretId: "valheimServerPass",
-  adminlistSecretId: "adminlistValheim",
-  environment: {
-    ...commonEnv("endgard"),
-    SERVER_NAME: "Endgard",
-    WORLD_NAME: "Endgard",
-    ...VALHEIM_PLUS_ENV,
-  },
-});
-
-const arvendServerStack = new ValheimWorldStack(app, "ArvendWorld", {
-  env,
-  passwordSecretId: "valheimServerPass",
-  adminlistSecretId: "adminlistValheim",
-  environment: {
-    ...commonEnv("arvend"),
-    SERVER_NAME: "Arvend",
-    WORLD_NAME: "Arvend",
-    ...VALHEIM_PLUS_EZPZ_ENV,
-  },
-});
-
 const testEmptyServerStack = new ValheimWorldStack(app, "TestEmptyWorld", {
   env,
   passwordSecretId: "valheimServerPass",
@@ -153,39 +95,13 @@ const testEmptyServerStack = new ValheimWorldStack(app, "TestEmptyWorld", {
   },
 });
 
-const niflheimServerStack = new ValheimWorldStack(app, "NiflheimWorld", {
-  env,
-  passwordSecretId: "valheimServerPass",
-  adminlistSecretId: "adminlistValheim",
-  environment: {
-    ...commonEnv("niflheim"),
-    SERVER_NAME: "NiflheimWorld",
-    WORLD_NAME: "NiflheimWorld",
-    ...VALHEIM_PLUS_OMEGA_QOL_ENV,
-    POST_UPDATE_CHECK_HOOK: `${callDebugContentWebhook("test", "Updated!")} && ${downloadCustomVPlus}`,
-  },
-});
-
-const grantServerStack = new ValheimWorldStack(app, "GrantWorld", {
-  env,
-  passwordSecretId: "valheimServerPass",
-  adminlistSecretId: "adminlistValheim",
-  environment: {
-    ...commonEnv("grant"),
-    NOFIFY_WEBHOOK: DEBUG_CHANNEL_FAKE_PROD_WEBHOOK,
-    SERVER_NAME: "GrantWorld",
-    WORLD_NAME: "GrantWorld",
-    ...VALHEIM_PLUS_OMEGA_QOL_ENV,
-    POST_UPDATE_CHECK_HOOK: `${callDebugContentWebhook("test", "Updated!")} && ${downloadCustomVPlus}`,
-  },
-});
-
 const betaServerStack = new ValheimWorldStack(app, "BetaWorld", {
   env,
   passwordSecretId: "valheimServerPass",
   adminlistSecretId: "adminlistValheim",
   environment: {
     ...commonEnv("beta"),
+    NOFIFY_WEBHOOK: DEBUG_CHANNEL_FAKE_PROD_WEBHOOK,
     SERVER_NAME: "BetaWorld",
     WORLD_NAME: "BetaWorld",
     ...VALHEIM_PLUS_OMEGA_QOL_ENV,
@@ -193,16 +109,22 @@ const betaServerStack = new ValheimWorldStack(app, "BetaWorld", {
   },
 });
 
+const ashinoWorld = new ValheimWorldStack(app, "AshinoWorld", {
+  env,
+  passwordSecretId: "valheimServerPass",
+  adminlistSecretId: "adminlistValheim",
+  environment: {
+    ...commonEnv("ashino"),
+    SERVER_NAME: "Ashino",
+    WORLD_NAME: "Ashino",
+    ...VALHEIM_PLUS_OMEGA_QOL_ENV_PRE_ASH,
+  },
+});
+
 const allServers: Record<string, ValheimWorld> = {
-  niflheim: niflheimServerStack.world,
-  hellheim: hellheimValheimServerStack.world,
-  grantapher: grantapherValheimServerStack.world,
-  goblino: goblinoValheimServerStack.world,
-  endgard: endgardServerStack.world,
-  arvend: arvendServerStack.world,
-  grant: grantServerStack.world,
   beta: betaServerStack.world,
   test: testEmptyServerStack.world,
+  ashino: ashinoWorld.world,
 };
 
 new DiscordJsInteractionsStack(app, "DiscordJsInteractionsStack", {

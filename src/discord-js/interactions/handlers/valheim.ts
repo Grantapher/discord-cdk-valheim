@@ -1,5 +1,5 @@
-import { ActionRowBuilder, SelectMenuOptionBuilder } from "@discordjs/builders";
-import { InteractionResponseType, SelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, StringSelectMenuOptionBuilder } from "@discordjs/builders";
+import { InteractionResponseType, StringSelectMenuBuilder } from "discord.js";
 import { successResponse } from "../responses";
 import { getServerConfig } from "../util";
 
@@ -12,11 +12,13 @@ export const valheimHandler = async () => {
     type: InteractionResponseType.ChannelMessageWithSource,
     data: {
       components: [
-        new ActionRowBuilder<SelectMenuBuilder>()
+        new ActionRowBuilder<StringSelectMenuBuilder>()
           .addComponents(
-            new SelectMenuBuilder()
+            new StringSelectMenuBuilder()
               .setCustomId(SERVER_NAME_SELECT_ID)
-              .setOptions(serverConfigs.map(({ name }) => new SelectMenuOptionBuilder().setValue(name).setLabel(name)))
+              .setOptions(
+                serverConfigs.map(({ name }) => new StringSelectMenuOptionBuilder().setValue(name).setLabel(name))
+              )
               .setPlaceholder("Select a server...")
           )
           .toJSON(),

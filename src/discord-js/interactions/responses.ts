@@ -7,8 +7,8 @@ import {
   APIMessageActionRowComponent,
   EmbedBuilder,
   InteractionResponseType,
-  SelectMenuBuilder,
-  SelectMenuOptionBuilder,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } from "discord.js";
 import { SERVER_NAME_SELECT_ID } from "./handlers/valheim";
 import { getServerConfig } from "./util";
@@ -48,13 +48,13 @@ export const serverResponse: (
         ...extraEmbeds,
       ],
       components: [
-        new ActionRowBuilder<SelectMenuBuilder>()
+        new ActionRowBuilder<StringSelectMenuBuilder>()
           .addComponents(
-            new SelectMenuBuilder()
+            new StringSelectMenuBuilder()
               .setCustomId(SERVER_NAME_SELECT_ID)
               .setOptions(
                 serverConfigs.map(({ name }) =>
-                  new SelectMenuOptionBuilder()
+                  new StringSelectMenuOptionBuilder()
                     .setValue(name)
                     .setLabel(name)
                     .setDefault(name === selectedServerName)

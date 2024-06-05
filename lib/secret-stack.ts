@@ -1,5 +1,5 @@
-import * as sm from "@aws-cdk/aws-secretsmanager";
-import * as cdk from "@aws-cdk/core";
+import * as cdk from "aws-cdk-lib";
+import { aws_secretsmanager as sm } from "aws-cdk-lib";
 
 export interface ValheimSecretStackProps extends cdk.StackProps {
   readonly valheimWebhookSecretId: string;
