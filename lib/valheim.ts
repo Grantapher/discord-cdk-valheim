@@ -60,7 +60,7 @@ const commonEnv = (name: string) => ({
   VALHEIM_PLUS_REPO: "Grantapher/ValheimPlus",
   // VALHEIM_PLUS_RELEASE: "tags/0.9.9.15-alpha7",
   // STEAMCMD_ARGS: "-beta public-test -betapassword yesimadebackups",
-  SERVER_ARGS: "-crossplay",
+  // SERVER_ARGS: "-crossplay", // crossplay breaks the player count in /status.json
   NOFIFY_WEBHOOK: PROD_WEBHOOK,
   DEBUG_WEBHOOK: DEBUG_WEBHOOK,
   PRE_SUPERVISOR_HOOK: callDebugContentWebhook(name, "Booting up!", Color.YELLOW),
