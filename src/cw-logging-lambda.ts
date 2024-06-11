@@ -1,3 +1,5 @@
+// noinspection HttpUrlsUsage
+
 import * as cw from "@aws-sdk/client-cloudwatch";
 import * as ec2 from "@aws-sdk/client-ec2";
 import * as ecs from "@aws-sdk/client-ecs";
@@ -7,6 +9,7 @@ import { ScheduledHandler } from "aws-lambda";
 const ecsClient = new ecs.ECS({});
 const cwClient = new cw.CloudWatch({});
 
+// noinspection JSUnusedGlobalSymbols
 export const loggingLambdaHandler: ScheduledHandler = async () => {
   const clusterArn = process.env.SERVER_CLUSTER_ARN;
   if (!clusterArn) {
@@ -31,7 +34,7 @@ export const loggingLambdaHandler: ScheduledHandler = async () => {
 
   const metrics = await getMetrics(clusterArn, serviceName);
 
-  cwClient.putMetricData({
+  await cwClient.putMetricData({
     Namespace: "Valheim",
     MetricData: [
       {
@@ -66,21 +69,29 @@ const getMetrics: (clusterArn: string, serviceName: string) => Promise<{ online:
       return undefined;
     });
 
+  console.info(`describeServices: ${JSON.stringify(describeServicesResponse, undefined, 2)}`);
   const service = describeServicesResponse?.services?.find(any);
+  if (!service) {
+    console.error("Couldn't find service");
+    return emptyMetrics;
+  }
 
-  if (!service || (service.runningCount ?? 0) < 1) {
+  if ((service.runningCount ?? 0) < 1) {
+    console.info("Service isn't running, inherently 0 players.");
     return emptyMetrics;
   }
 
   const niDescription = await ecsClient
     .listTasks({ cluster: service.clusterArn })
-    .then((listTasksResp) =>
-      ecsClient.describeTasks({
+    .then((listTasksResp) => {
+      console.info(`listTasks: ${JSON.stringify(listTasksResp, undefined, 2)}`);
+      return ecsClient.describeTasks({
         tasks: listTasksResp.taskArns,
         cluster: service.clusterArn,
-      })
-    )
+      });
+    })
     .then((describeTasksResp) => {
+      console.info(`describeTasks: ${JSON.stringify(describeTasksResp, undefined, 2)}`);
       const eniId = describeTasksResp.tasks
         ?.find(any)
         ?.attachments?.find(any)
@@ -99,8 +110,11 @@ const getMetrics: (clusterArn: string, serviceName: string) => Promise<{ online:
       return undefined;
     });
 
+  console.info(`describeNetworkInterfaces: ${JSON.stringify(niDescription, undefined, 2)}`);
+
   const publicIp = niDescription?.NetworkInterfaces?.find(any)?.Association?.PublicIp;
   if (!publicIp) {
+    console.error("Couldn't find publicIp");
     return emptyMetrics;
   }
 
@@ -113,12 +127,21 @@ const getMetrics: (clusterArn: string, serviceName: string) => Promise<{ online:
       return undefined;
     });
 
-  if (!status || status.error !== null) {
+  console.info(`status: ${JSON.stringify(status, undefined, 2)}`);
+  if (!status) {
+    console.error("Couldn't determine status");
+    return emptyMetrics;
+  }
+
+  if (status.error !== null) {
+    console.error(`Status error (could be server booting): ${status.error}`);
     return emptyMetrics;
   }
 
   const numPlayers = status.player_count as number;
-  return { online: true, count: numPlayers };
+  const ret = { online: true, count: numPlayers };
+  console.info(`All good. Returning ${JSON.stringify(ret, undefined, 2)}`);
+  return ret;
 };
 
 // for use in find so that .find(any) returns the first item or undef
