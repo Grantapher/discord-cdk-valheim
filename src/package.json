@@ -14,6 +14,7 @@
     "@aws-sdk/client-cloudwatch": "^3.590.0",
     "@aws-sdk/client-ec2": "^3.590.0",
     "@aws-sdk/client-ecs": "^3.590.0",
+    "@aws-sdk/client-route-53": "^3.590.0",
     "@aws-sdk/client-secrets-manager": "^3.590.0",
     "@discordjs/rest": "^2.3.0",
     "discord-interactions": "^3.4.0",

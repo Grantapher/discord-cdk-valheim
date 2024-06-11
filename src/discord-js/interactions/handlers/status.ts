@@ -10,9 +10,17 @@ import {
 } from "discord.js";
 import fetch from "node-fetch";
 import { errorResponse, serverResponse, successResponse } from "../responses";
-import { ec2Client, ecsClient, getServerConfig, getServerNameFromComponents } from "../util";
+import {
+  ec2Client,
+  ecsClient,
+  getHostedZoneId,
+  getHostedZoneName,
+  getServerConfig,
+  getServerNameFromComponents,
+  r53Client,
+} from "../util";
+import { ChangeResourceRecordSetsCommandInput } from "@aws-sdk/client-route-53";
 
-export const SERVER_NAME_SELECT_ID = "server-name";
 const debug = false;
 
 export const statusHandler = async (interaction: APIMessageComponentInteraction) => {
@@ -116,9 +124,49 @@ export const status = async (serverName: string | undefined) => {
 
   const valheimEnv = taskDef?.taskDefinition?.containerDefinitions?.find(() => true)?.environment;
   const pass = valheimEnv?.find((pair) => pair.name === "SERVER_PASS")?.value;
-  const port = valheimEnv?.find((pair) => pair.name === "SERVER_PORT")?.value ?? "2456";
-
   const publicIp = niDescription?.NetworkInterfaces?.find(() => true)?.Association?.PublicIp;
+
+  const url = `${config.urlPrefix}.${getHostedZoneName()}`;
+  let changeRecordsPromise: Promise<unknown> | undefined;
+  if (publicIp != undefined) {
+    const hostedZoneId = getHostedZoneId();
+    const listResourceRecordSetsResult = await r53Client.listResourceRecordSets({
+      HostedZoneId: hostedZoneId,
+      StartRecordType: "A",
+      StartRecordName: url,
+    });
+
+    console.info(`listResourceRecordSetsResult: ${JSON.stringify(listResourceRecordSetsResult, null, 2)}`);
+    const ipString = listResourceRecordSetsResult.ResourceRecordSets?.find(
+      (recordSet) => recordSet.Type == "A" && recordSet.Name! && recordSet.Name.startsWith(url)
+    )?.ResourceRecords?.[0]?.Value;
+
+    if (ipString != publicIp) {
+      // ip is not what we expected, update it.
+      const input: ChangeResourceRecordSetsCommandInput = {
+        HostedZoneId: hostedZoneId,
+        ChangeBatch: {
+          Comment: "Update IP to new server instance.",
+          Changes: [
+            {
+              Action: "UPSERT",
+              ResourceRecordSet: {
+                Name: url,
+                Type: "A",
+                TTL: 30,
+                ResourceRecords: [
+                  {
+                    Value: publicIp,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      };
+      changeRecordsPromise = r53Client.changeResourceRecordSets(input);
+    }
+  }
 
   // todo make a type result for the status.json result
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,6 +184,11 @@ export const status = async (serverName: string | undefined) => {
 
   const [statusString, color] = getStatus(ecsService, serverUp);
 
+  if (changeRecordsPromise != undefined) {
+    const res = await changeRecordsPromise;
+    console.info(`changeRecordsResult: ${JSON.stringify(res, null, 2)}`);
+  }
+
   return respond(
     !enabled,
     enabled,
@@ -145,25 +198,14 @@ export const status = async (serverName: string | undefined) => {
         .setFields(
           [
             { name: "Status", value: statusString },
-            serverUp && {
-              name: "Player Count",
-              value: `${status.player_count}`,
-              inline: true,
-            },
-            serverUp && { name: "IP Address", value: `\`${publicIp}\``, inline: true },
+            serverUp && { name: "URL", value: `\`${url}\``, inline: true },
             serverUp && pass && { name: "Password", value: `\`${pass}\``, inline: true },
+            serverUp && { name: "Player Count", value: `${status.player_count}` },
+            serverUp && { name: "IP Address (Backup if URL isn't working) ", value: `\`${publicIp}\`` },
             debug && { name: "Debug", value: debugContent },
           ].filter((x): x is APIEmbedField => !!x)
         )
         .toJSON(),
-      statusString === "Online" &&
-        new EmbedBuilder()
-          .setColor(0x00ff00)
-          .setTitle("One-Click Join")
-          .setDescription(
-            `Game must not be already open.\nsteam://run/892970//-console%20%2Bconnect%20${publicIp}%3A${port}%20%2Bpassword%20${pass}\n`
-          )
-          .toJSON(),
     ].filter((x): x is APIEmbed => !!x)
   );
 };

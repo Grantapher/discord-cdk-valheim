@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-import { DiscordJsInteractionsStack } from "./discord-js-interactions-stack";
+import { DiscordJsInteractionsStack, ServerProps } from "./discord-js-interactions-stack";
 import { ValheimSecretStack } from "./secret-stack";
 import VALHEIM_PLUS_OMEGA_QOL_ENV from "./valheim-plus-config-omega-qol";
 import VALHEIM_PLUS_OMEGA_QOL_ENV_PRE_ASH from "./valheim-plus-config-omega-qol-pre-ashlands";
 import { ValheimS3Stack } from "./valheim-s3-stack";
 import { ValheimWorldStack } from "./valheim-world-stack";
-import { ValheimWorld } from "cdk-valheim";
 import * as cdk from "aws-cdk-lib";
+import { HostedZoneStack } from "./hosted-zone-lookup";
 
 const app = new cdk.App();
 
@@ -54,6 +54,14 @@ const callDebugContentWebhook = (name: string, content: string, color: Color = C
 const installAwsCli = "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install awscli";
 const downloadCustomVPlus =
   "aws s3 cp s3://valheim-cdk-bucket/mods/dll/ValheimPlus.dll /opt/valheim/plus/BepInEx/plugins/ValheimPlus.dll";
+
+const hostedZoneStack = new HostedZoneStack(app, "HostedZoneStack", {
+  env,
+  hostedZoneAttrs: {
+    hostedZoneId: "Z0176478BRGYJGO9LYTJ",
+    zoneName: "grantapher.dev",
+  },
+});
 
 const commonEnv = (name: string) => ({
   VALHEIM_PLUS: "true",
@@ -121,10 +129,19 @@ const ashinoWorld = new ValheimWorldStack(app, "AshinoWorld", {
   },
 });
 
-const allServers: Record<string, ValheimWorld> = {
-  beta: betaServerStack.world,
-  test: testEmptyServerStack.world,
-  ashino: ashinoWorld.world,
+const allServers: Record<string, ServerProps> = {
+  beta: {
+    world: betaServerStack.world,
+    urlPrefix: "beta-valheim",
+  },
+  test: {
+    world: testEmptyServerStack.world,
+    urlPrefix: "test-valheim",
+  },
+  ashino: {
+    world: ashinoWorld.world,
+    urlPrefix: "ashino",
+  },
 };
 
 new DiscordJsInteractionsStack(app, "DiscordJsInteractionsStack", {
@@ -132,8 +149,9 @@ new DiscordJsInteractionsStack(app, "DiscordJsInteractionsStack", {
   clientIdSecretId: "discordValheimBotClientPublicKey",
   botTokenId: "ValheimBotToken",
   servers: allServers,
+  hostedZone: hostedZoneStack.hostedZone,
 });
 
 Object.values(allServers).forEach((valheimWorld) =>
-  s3Stack.bucket.grantRead(valheimWorld.service.taskDefinition.taskRole)
+  s3Stack.bucket.grantRead(valheimWorld.world.service.taskDefinition.taskRole)
 );
