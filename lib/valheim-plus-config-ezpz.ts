@@ -1,3 +1,5 @@
+import { ALL_EXPERIENCE_SETTINGS, ALL_GATHERING_SETTINGS, ALL_PICKABLE_SETTINGS, assignEach } from "./config-util";
+
 export default {
   // Valheim plus options as env config...
   VPCFG_Server_enabled: "true", // enable V+, server syncing of configs, and enforcing v+ installations
@@ -22,6 +24,9 @@ export default {
 
   VPCFG_CraftFromChest_enabled: "true", // craft from chests/carts/ships around your nearest workbench
   VPCFG_CraftFromChest_range: "30",
+
+  VPCFG_Experience_enabled: "true", // 5x all experience
+  ...assignEach("Experience", "400", ALL_EXPERIENCE_SETTINGS),
 
   VPCFG_Fermenter_enabled: "true",
   VPCFG_Fermenter_showDuration: "true", // show mins/secs to finishing
@@ -58,6 +63,7 @@ export default {
 
   VPCFG_Gathering_enabled: "true", // see bottom for rates
   VPCFG_Gathering_dropChance: "900", // 10x drop chance
+  ...assignEach("Gathering", "200", ALL_GATHERING_SETTINGS), // 3x all drop amounts
 
   VPCFG_GridAlignment_enabled: "true", // global grid alignment when building using left alt
 
@@ -97,6 +103,9 @@ export default {
   VPCFG_Map_preventPlayerFromTurningOffPublicPosition: "true",
   VPCFG_Map_shareMapProgression: "true", // share map among players
   VPCFG_Map_shareAllPins: "true", // share pins among players
+
+  VPCFG_Pickable_enabled: "true", // 3x all drop amounts
+  ...assignEach("Pickable", "200", ALL_PICKABLE_SETTINGS),
 
   VPCFG_Player_enabled: "true",
   VPCFG_Player_baseMegingjordBuff: "300", // belt does 2x weight instead of the 1.5x default
@@ -155,48 +164,4 @@ export default {
   VPCFG_Workbench_enabled: "true",
   VPCFG_Workbench_workbenchRange: "30", // 1.5x radius
   VPCFG_Workbench_workbenchAttachmentRange: "10", // 2x radius
-
-  VPCFG_Experience_enabled: "true", // 5x all experience
-  ...[
-    "swords",
-    "knives",
-    "clubs",
-    "polearms",
-    "spears",
-    "blocking",
-    "axes",
-    "bows",
-    "fireMagic",
-    "frostMagic",
-    "unarmed",
-    "pickaxes",
-    "woodCutting",
-    "jump",
-    "sneak",
-    "run",
-    "swim",
-    "ride",
-  ]
-    .map((it) => ({ [`VPCFG_Experience_${it}`]: "400" }))
-    .reduce((prev, curr) => Object.assign(prev, curr)),
-
-  ...[
-    // 3x all drop amounts
-    "wood",
-    "stone",
-    "fineWood",
-    "coreWood",
-    "elderBark",
-    "ironScrap",
-    "tinOre",
-    "copperOre",
-    "silverOre",
-    "Chitin",
-  ]
-    .map((it) => ({ [`VPCFG_Gathering_${it}`]: "200" }))
-    .reduce((prev, curr) => Object.assign(prev, curr)),
-  VPCFG_Pickable_enabled: "true", // 3x all drop rates
-  ...["edibles", "flowersAndIngredients", "materials", "valuables", "surtlingCores"]
-    .map((it) => ({ [`VPCFG_Pickable_${it}`]: "200" }))
-    .reduce((prev, curr) => Object.assign(prev, curr)),
 };

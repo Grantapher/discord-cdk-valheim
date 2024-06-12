@@ -5,8 +5,9 @@
     "minecraft": "lib/valheim.js"
   },
   "scripts": {
-    "prebuild": "cd src && npm run build",
+    "src:build": "cd src && npm run build",
     "build": "tsc",
+    "build:all": "npm run src:build && npm run build",
     "postbuild": "npm run lint",
     "lint": "eslint --ext .js --ext .ts .",
     "lint:fix": "eslint --fix --ext .js --ext .ts .",

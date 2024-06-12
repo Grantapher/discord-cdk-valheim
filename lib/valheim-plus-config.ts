@@ -152,9 +152,9 @@ export default {
 
   VPCFG_StructuralIntegrity_enabled: "true",
   VPCFG_StructuralIntegrity_disableWaterDamageToPlayerBoats: "true", // disable water force damage to boats
-  VPCFG_StructuralIntegrity_hardwood: "100", // 2x integrity
-  VPCFG_StructuralIntegrity_stone: "200", // 3x integrity
-  VPCFG_StructuralIntegrity_iron: "200", // 3x integrity
+  VPCFG_StructuralIntegrity_hardWood: "50", // 2x integrity
+  VPCFG_StructuralIntegrity_stone: "67", // 3x integrity
+  VPCFG_StructuralIntegrity_iron: "67", // 3x integrity
 
   VPCFG_Wagon_enabled: "true",
   VPCFG_Wagon_wagonExtraMassFromItems: "-66", // item weight in wagon doesn't weigh down as much

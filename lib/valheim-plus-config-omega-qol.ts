@@ -1,3 +1,12 @@
+import {
+  ALL_DURABILITY_SETTINGS,
+  ALL_EXPERIENCE_SETTINGS,
+  ALL_GATHERING_SETTINGS,
+  ALL_PICKABLE_SETTINGS,
+  ALL_STRUCTURAL_INTEGRITY_MODIFIER_SETTINGS,
+  assignEach,
+} from "./config-util";
+
 export default {
   // Valheim plus options as env config...
   VPCFG_Server_enabled: "true", // enable V+, server syncing of configs, and enforcing v+ installations
@@ -37,6 +46,9 @@ export default {
   VPCFG_Demister_wispTorch: "36", // usually 12
   VPCFG_Demister_mistwalker: "10", // usually 5
 
+  VPCFG_Durability_enabled: "true", // 20x all durability
+  ...assignEach("Durability", "1900", ALL_DURABILITY_SETTINGS),
+
   VPCFG_EitrRefinery_enabled: "true",
   VPCFG_EitrRefinery_maximumSap: "200", // usually 20
   VPCFG_EitrRefinery_maximumSoftTissue: "200", // usually 20
@@ -48,6 +60,9 @@ export default {
   VPCFG_EitrUsage_enabled: "true",
   VPCFG_EitrUsage_bloodMagic: "-80",
   VPCFG_EitrUsage_elementalMagic: "-80",
+
+  VPCFG_Experience_enabled: "true", // 100x all experience
+  ...assignEach("Experience", "9900", ALL_EXPERIENCE_SETTINGS),
 
   VPCFG_Fermenter_enabled: "true",
   VPCFG_Fermenter_showDuration: "true", // show mins/secs to finishing
@@ -85,6 +100,7 @@ export default {
 
   VPCFG_Gathering_enabled: "true", // see bottom for rates
   VPCFG_Gathering_dropChance: "4900", // 50x drop chance
+  ...assignEach("Gathering", "400", ALL_GATHERING_SETTINGS), // 5x all drop amounts
 
   VPCFG_GridAlignment_enabled: "true", // global grid alignment when building using left alt
 
@@ -158,6 +174,9 @@ export default {
   VPCFG_Player_fallDamageScalePercent: "-80", // less fall damage
   VPCFG_Player_disableEightSecondTeleport: "true", // teleport quicker
 
+  VPCFG_Pickable_enabled: "true", // 5x all drop amounts
+  ...assignEach("Pickable", "400", ALL_PICKABLE_SETTINGS),
+
   VPCFG_SapCollector_enabled: "true",
   VPCFG_SapCollector_sapProductionSpeed: "15", // usually 60
   VPCFG_SapCollector_maximumSapPerCollector: "100", // usually 10
@@ -202,13 +221,7 @@ export default {
   VPCFG_StructuralIntegrity_disableDamageToPlayerStructures: "true", // invincible buildings
   VPCFG_StructuralIntegrity_disableDamageToPlayerCarts: "true", // invincible carts
   VPCFG_StructuralIntegrity_disableWaterDamageToPlayerCarts: "true", // invincible carts
-  VPCFG_StructuralIntegrity_wood: "2000", // 20x integrity
-  VPCFG_StructuralIntegrity_stone: "2000", // 20x integrity
-  VPCFG_StructuralIntegrity_iron: "2000", // 20x integrity
-  VPCFG_StructuralIntegrity_hardwood: "2000", // 20x integrity
-  VPCFG_StructuralIntegrity_marble: "2000", // 20x integrity
-  VPCFG_StructuralIntegrity_ashstone: "2000", // 20x integrity
-  VPCFG_StructuralIntegrity_ancient: "2000", // 20x integrity
+  ...assignEach("StructuralIntegrity", "90", ALL_STRUCTURAL_INTEGRITY_MODIFIER_SETTINGS), // 10x integrity
 
   VPCFG_Tameable_enabled: "true",
   VPCFG_Tameable_mortality: "1",
@@ -238,65 +251,4 @@ export default {
   VPCFG_Workbench_disableRoofCheck: "true", // 5x radius
   VPCFG_Workbench_workbenchRange: "100", // 5x radius
   VPCFG_Workbench_workbenchAttachmentRange: "20", // 4x radius
-
-  VPCFG_Durability_enabled: "true", // 20x all durability
-  ...["pickaxes", "axes", "hammer", "cultivator", "hoe", "weapons", "armor", "bows", "shields", "torch"]
-    .map((it) => ({ [`VPCFG_Durability_${it}`]: "1900" }))
-    .reduce((prev, curr) => Object.assign(prev, curr)),
-
-  VPCFG_Experience_enabled: "true", // 100x all experience
-  ...[
-    "swords",
-    "knives",
-    "clubs",
-    "polearms",
-    "spears",
-    "blocking",
-    "axes",
-    "bows",
-    "elementalMagic",
-    "bloodMagic",
-    "unarmed",
-    "pickaxes",
-    "woodCutting",
-    "crossbows",
-    "jump",
-    "sneak",
-    "run",
-    "swim",
-    "fishing",
-    "ride",
-  ]
-    .map((it) => ({ [`VPCFG_Experience_${it}`]: "9900" }))
-    .reduce((prev, curr) => Object.assign(prev, curr)),
-
-  ...[
-    // 5x all drop amounts
-    "wood",
-    "stone",
-    "fineWood",
-    "coreWood",
-    "elderBark",
-    "yggdrasilWood",
-    "blackwood",
-    "stone",
-    "grausten",
-    "blackMarble",
-    "tinOre",
-    "copperOre",
-    "copperScrap",
-    "ironScrap",
-    "silverOre",
-    "chitin",
-    "feather",
-    "flametalOre",
-    "proustitePowder",
-  ]
-    .map((it) => ({ [`VPCFG_Gathering_${it}`]: "400" }))
-    .reduce((prev, curr) => Object.assign(prev, curr)),
-
-  VPCFG_Pickable_enabled: "true", // 5x all drop amounts
-  ...["edibles", "flowersAndIngredients", "materials", "valuables", "surtlingCores", "blackCores", "questItems"]
-    .map((it) => ({ [`VPCFG_Pickable_${it}`]: "400" }))
-    .reduce((prev, curr) => Object.assign(prev, curr)),
 };
