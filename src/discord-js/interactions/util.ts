@@ -1,8 +1,8 @@
 import { APIActionRowComponent, APIMessageActionRowComponent, ComponentType } from "discord.js";
 import { SERVER_NAME_SELECT_ID } from "./handlers/valheim";
-import * as ecs from "@aws-sdk/client-ecs";
-import * as ec2 from "@aws-sdk/client-ec2";
-import * as r53 from "@aws-sdk/client-route-53";
+// import * as ecs from "@aws-sdk/client-ecs";
+// import * as ec2 from "@aws-sdk/client-ec2";
+// import * as r53 from "@aws-sdk/client-route-53";
 
 export const getServerConfig = () => {
   const serverConfigString = process.env.SERVER_CONFIG;
@@ -24,11 +24,13 @@ export interface ServerConfig {
   readonly service: string;
   readonly arn: string;
   readonly urlPrefix: string;
+  readonly startSfnArn: string;
+  readonly statusSfnArn: string;
 }
 
-export const ecsClient = new ecs.ECS({});
-export const ec2Client = new ec2.EC2({});
-export const r53Client = new r53.Route53({});
+// export const ecsClient = new ecs.ECS({});
+// export const ec2Client = new ec2.EC2({});
+// export const r53Client = new r53.Route53({});
 export const getServerNameFromComponents = (
   rows: APIActionRowComponent<APIMessageActionRowComponent>[] | undefined
 ) => {

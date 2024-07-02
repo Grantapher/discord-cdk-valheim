@@ -2,39 +2,30 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { verifyKey } from "discord-interactions";
 import {
   APIChatInputApplicationCommandGuildInteraction,
-  APIMessageComponentButtonInteraction,
   APIMessageComponentInteraction,
-  APIMessageComponentSelectMenuInteraction,
   APIPingInteraction,
   InteractionResponseType,
   InteractionType,
 } from "discord.js";
 import { serverSelectHandler } from "./handlers/server-select";
-import { startHandler } from "./handlers/start";
-import { statusHandler } from "./handlers/status";
-import { stopHandler } from "./handlers/stop";
 import { SERVER_NAME_SELECT_ID, valheimHandler } from "./handlers/valheim";
 import { errorResponse, response, successResponse } from "./responses";
 
 const applicationCommandHandlerMap: Map<
   string,
   (request: APIChatInputApplicationCommandGuildInteraction) => Promise<APIGatewayProxyResult>
-> = new Map([["valheim", valheimHandler]]);
+> = new Map([["vsfn", valheimHandler]]);
 
 const messageComponentHandlerMap: Map<
   string,
   (request: APIMessageComponentInteraction) => Promise<APIGatewayProxyResult>
-> = new Map([
-  [SERVER_NAME_SELECT_ID, serverSelectHandler],
-  ["start", startHandler],
-  ["status", statusHandler],
-  ["stop", stopHandler],
-]);
+> = new Map([[SERVER_NAME_SELECT_ID, serverSelectHandler]]);
 
 const getHeader = (event: APIGatewayProxyEvent, key: string) =>
   Object.entries(event.headers).find(([entryKey]) => entryKey.toLowerCase() === key.toLowerCase())?.[1];
 
-export const discordInteractionsHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+// noinspection JSUnusedGlobalSymbols Entry point
+export const discordInteractionsHandlerSfn = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const signature = getHeader(event, "X-Signature-Ed25519");
   const timestamp = getHeader(event, "X-Signature-Timestamp");
 
@@ -59,15 +50,14 @@ export const discordInteractionsHandler = async (event: APIGatewayProxyEvent): P
   const body = JSON.parse(event.body) as
     | APIPingInteraction
     | APIChatInputApplicationCommandGuildInteraction
-    | APIMessageComponentButtonInteraction
-    | APIMessageComponentSelectMenuInteraction;
+    | APIMessageComponentInteraction;
 
   console.log(event.body);
 
   const type = body.type; // required for the default case
 
   try {
-    switch (body.type) {
+    switch (type) {
       case InteractionType.Ping: {
         console.log("Received ping, returning pong");
         return successResponse({ type: InteractionResponseType.Pong });

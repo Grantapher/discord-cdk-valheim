@@ -7,6 +7,7 @@ import { ValheimS3Stack } from "./valheim-s3-stack";
 import { ValheimWorldStack } from "./valheim-world-stack";
 import * as cdk from "aws-cdk-lib";
 import { HostedZoneStack } from "./hosted-zone-lookup";
+import { DiscordJsSfnInteractionsStack } from "./discord-js-sfn-interactions-stack";
 
 const app = new cdk.App();
 
@@ -91,13 +92,14 @@ const s3Stack = new ValheimS3Stack(app, "ValheimS3Stack", {
 
 const testEmptyServerStack = new ValheimWorldStack(app, "TestEmptyWorld", {
   env,
+  worldName: "GrantTest",
   passwordSecretId: "valheimServerPass",
   adminlistSecretId: "adminlistValheim",
+  hostedZone: hostedZoneStack.hostedZone,
+  urlPrefix: "test-valheim",
   environment: {
     ...commonEnv("test"),
     NOFIFY_WEBHOOK: DEBUG_CHANNEL_FAKE_PROD_WEBHOOK,
-    SERVER_NAME: "GrantTest",
-    WORLD_NAME: "GrantTest",
     ...VALHEIM_PLUS_OMEGA_QOL_ENV,
     //POST_UPDATE_CHECK_HOOK: `${callDebugContentWebhook("test", "Updated!")} && ${downloadCustomVPlus}`,
   },
@@ -105,13 +107,14 @@ const testEmptyServerStack = new ValheimWorldStack(app, "TestEmptyWorld", {
 
 const betaServerStack = new ValheimWorldStack(app, "BetaWorld", {
   env,
+  worldName: "BetaWorld",
   passwordSecretId: "valheimServerPass",
   adminlistSecretId: "adminlistValheim",
+  hostedZone: hostedZoneStack.hostedZone,
+  urlPrefix: "beta-valheim",
   environment: {
     ...commonEnv("beta"),
     NOFIFY_WEBHOOK: DEBUG_CHANNEL_FAKE_PROD_WEBHOOK,
-    SERVER_NAME: "BetaWorld",
-    WORLD_NAME: "BetaWorld",
     ...VALHEIM_PLUS_OMEGA_QOL_ENV,
     POST_UPDATE_CHECK_HOOK: `${callDebugContentWebhook("test", "Updated!")} && ${downloadCustomVPlus}`,
   },
@@ -119,12 +122,13 @@ const betaServerStack = new ValheimWorldStack(app, "BetaWorld", {
 
 const ashinoWorld = new ValheimWorldStack(app, "AshinoWorld", {
   env,
+  worldName: "Ashino",
   passwordSecretId: "valheimServerPass",
   adminlistSecretId: "adminlistValheim",
+  hostedZone: hostedZoneStack.hostedZone,
+  urlPrefix: "ashino",
   environment: {
     ...commonEnv("ashino"),
-    SERVER_NAME: "Ashino",
-    WORLD_NAME: "Ashino",
     ...VALHEIM_PLUS_OMEGA_QOL_ENV_PRE_ASH,
   },
 });
@@ -132,15 +136,15 @@ const ashinoWorld = new ValheimWorldStack(app, "AshinoWorld", {
 const allServers: Record<string, ServerProps> = {
   beta: {
     world: betaServerStack.world,
-    urlPrefix: "beta-valheim",
+    urlPrefix: betaServerStack.urlPrefix,
   },
   test: {
     world: testEmptyServerStack.world,
-    urlPrefix: "test-valheim",
+    urlPrefix: testEmptyServerStack.urlPrefix,
   },
   ashino: {
     world: ashinoWorld.world,
-    urlPrefix: "ashino",
+    urlPrefix: ashinoWorld.urlPrefix,
   },
 };
 
@@ -149,6 +153,20 @@ new DiscordJsInteractionsStack(app, "DiscordJsInteractionsStack", {
   clientIdSecretId: "discordValheimBotClientPublicKey",
   botTokenId: "ValheimBotToken",
   servers: allServers,
+  hostedZone: hostedZoneStack.hostedZone,
+});
+
+const allServerStacks: Record<string, ValheimWorldStack> = {
+  // beta: betaServerStack,
+  test: testEmptyServerStack,
+  // ashino: ashinoWorld,
+};
+
+new DiscordJsSfnInteractionsStack(app, "DiscordJsSfnInteractionsStack", {
+  env,
+  clientIdSecretId: "discordValheimBotClientPublicKey",
+  botTokenId: "ValheimBotToken",
+  servers: allServerStacks,
   hostedZone: hostedZoneStack.hostedZone,
 });
 
